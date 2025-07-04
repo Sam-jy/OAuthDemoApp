@@ -1,4 +1,4 @@
-package com.example.oauthdemoapp;
+package com.example.oauthdemoapp.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,9 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.oauthdemoapp.R;
+import com.example.oauthdemoapp.auth.AuthManager;
 
 public class MainActivity extends AppCompatActivity {
     private static final int RC_AUTH = 100;

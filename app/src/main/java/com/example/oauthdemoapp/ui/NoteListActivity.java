@@ -1,4 +1,4 @@
-package com.example.oauthdemoapp;
+package com.example.oauthdemoapp.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,19 +9,19 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.oauthdemoapp.R;
+import com.example.oauthdemoapp.auth.AuthManager;
+import com.example.oauthdemoapp.config.SQLiteConexion;
+import com.example.oauthdemoapp.model.Note;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class NoteListActivity extends AppCompatActivity {
     private static final int ADD_NOTE_REQUEST = 1;
@@ -30,7 +30,7 @@ public class NoteListActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private NoteAdapter adapter;
     private AuthManager authManager;
-    private ApiService apiService;
+    private SQLiteConexion conexion;
     private ProgressBar progressBar;
     private FloatingActionButton addNoteButton;
     
@@ -44,7 +44,7 @@ public class NoteListActivity extends AppCompatActivity {
         setTitle(R.string.my_notes);
         
         authManager = new AuthManager(this);
-        apiService = ApiClient.getClient().create(ApiService.class);
+        conexion = new SQLiteConexion(this);
         
         recyclerView = findViewById(R.id.notesRecyclerView);
         progressBar = findViewById(R.id.progressBar);
@@ -77,44 +77,21 @@ public class NoteListActivity extends AppCompatActivity {
     private void loadNotes() {
         showLoading(true);
         
-        authManager.performActionWithFreshTokens(new AuthManager.AuthActionCallback() {
-            @Override
-            public void onTokenAvailable(String accessToken) {
-                Call<List<Note>> call = apiService.getAllNotes("Bearer " + accessToken);
-                call.enqueue(new Callback<List<Note>>() {
-                    @Override
-                    public void onResponse(Call<List<Note>> call, Response<List<Note>> response) {
-                        showLoading(false);
-                        
-                        if (response.isSuccessful() && response.body() != null) {
-                            noteList = response.body();
-                            adapter.setNotes(noteList);
-                        } else {
-                            Toast.makeText(NoteListActivity.this, 
-                                    "Error al cargar notas: " + response.code(), 
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Note>> call, Throwable t) {
-                        showLoading(false);
-                        Toast.makeText(NoteListActivity.this, 
-                                "Error de red: " + t.getMessage(), 
-                                Toast.LENGTH_SHORT).show();
-                    }
+        // Verificar autenticación antes de cargar las notas
+        if (authManager.isAuthorized()) {
+            // Obtener notas de la base de datos SQLite
+            new Thread(() -> {
+                final List<Note> notes = conexion.getAllNotes();
+                
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    adapter.setNotes(notes);
                 });
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                showLoading(false);
-                Toast.makeText(NoteListActivity.this, 
-                        "Error de autenticación: " + errorMessage, 
-                        Toast.LENGTH_SHORT).show();
-                logout();
-            }
-        });
+            }).start();
+        } else {
+            showLoading(false);
+            logout();
+        }
     }
 
     private void logout() {
@@ -125,7 +102,7 @@ public class NoteListActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         
         if (resultCode == RESULT_OK) {
