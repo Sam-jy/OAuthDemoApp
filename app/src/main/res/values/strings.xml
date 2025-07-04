@@ -1,3 +1,12 @@
 <resources>
-    <string name="app_name">OAuthDemoApp</string>
+    <string name="app_name">Bloc de Notas OAuth</string>
+    <string name="login_with_oauth">Iniciar sesión con OAuth</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="note_title">Título</string>
+    <string name="note_content">Contenido</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="add_note">Añadir Nota</string>
+    <string name="edit_note">Editar Nota</string>
+    <string name="my_notes">Mis Notas</string>
 </resources>

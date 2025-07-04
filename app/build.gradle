@@ -29,9 +29,24 @@ android {
 }
 
 dependencies {
-
     implementation libs.appcompat
     implementation libs.material
+    implementation libs.constraintlayout
+    implementation libs.recyclerview
+    
+    // Room para base de datos local
+    implementation libs.room.runtime
+    annotationProcessor libs.room.compiler
+    
+    // Retrofit para comunicación con API
+    implementation libs.retrofit
+    implementation libs.retrofit.converter.gson
+    implementation libs.okhttp
+    implementation libs.okhttp.logging
+    
+    // OAuth
+    implementation libs.app.auth
+    
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
