@@ -1,29 +1,20 @@
 <?php
-/**
- * Punto de entrada principal para la API OAuth 2.0 + OpenID Connect
- */
 
-// Habilitar reporte de errores en desarrollo
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Definir la raíz de la aplicación
 define('APP_ROOT', dirname(__DIR__));
 
-// Cargar el autoloader de Composer
 require APP_ROOT . '/vendor/autoload.php';
 
-// Incluir archivos de utilidades
 require APP_ROOT . '/src/helpers.php';
 
-// Procesar la solicitud
+
 $request_uri = $_SERVER['REQUEST_URI'];
 $request_method = $_SERVER['REQUEST_METHOD'];
 
-// Extraer la ruta base (eliminar parámetros de consulta)
 $base_path = parse_url($request_uri, PHP_URL_PATH);
 
-// Enrutamiento básico
 if (preg_match('#^/auth/authorize#', $base_path)) {
     require APP_ROOT . '/auth/authorize.php';
 } elseif (preg_match('#^/auth/token#', $base_path)) {
@@ -42,7 +33,7 @@ if (preg_match('#^/auth/authorize#', $base_path)) {
     $id = $matches[1];
     require APP_ROOT . '/api/note_delete.php';
 } elseif ($base_path === '/') {
-    // Página de inicio
+ 
     echo json_encode([
         'api' => 'OAuth 2.0 + OpenID Connect API',
         'version' => '1.0.0',
@@ -61,7 +52,7 @@ if (preg_match('#^/auth/authorize#', $base_path)) {
         ]
     ]);
 } else {
-    // Ruta no encontrada
+
     http_response_code(404);
     echo json_encode([
         'error' => 'not_found',

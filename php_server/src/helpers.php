@@ -1,11 +1,5 @@
 <?php
-/**
- * Funciones auxiliares para la API
- */
 
-/**
- * Obtiene una conexión a la base de datos
- */
 function getDbConnection() {
     static $conn = null;
     
@@ -29,11 +23,8 @@ function getDbConnection() {
     return $conn;
 }
 
-/**
- * Verifica el token de acceso OAuth y devuelve los datos del usuario
- */
 function verifyAccessToken() {
-    // Obtener el token del encabezado Authorization
+ 
     $headers = getallheaders();
     $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
     
@@ -43,7 +34,6 @@ function verifyAccessToken() {
     
     $accessToken = $matches[1];
     
-    // Verificar token en la base de datos
     $db = getDbConnection();
     $stmt = $db->prepare("
         SELECT at.*, u.id as user_id, u.username, u.email, u.full_name
@@ -58,7 +48,6 @@ function verifyAccessToken() {
         respondWithError('unauthorized', 'Token de acceso inválido o expirado', 401);
     }
     
-    // Verificar que el scope incluya 'notes'
     if (!str_contains($tokenData['scope'], 'notes')) {
         respondWithError('insufficient_scope', 'El token no tiene el scope requerido', 403);
     }
@@ -72,9 +61,6 @@ function verifyAccessToken() {
     ];
 }
 
-/**
- * Envía una respuesta JSON al cliente
- */
 function respondWithJson($data, $statusCode = 200) {
     http_response_code($statusCode);
     header('Content-Type: application/json');
@@ -82,9 +68,6 @@ function respondWithJson($data, $statusCode = 200) {
     exit;
 }
 
-/**
- * Envía una respuesta de error al cliente
- */
 function respondWithError($error, $description, $statusCode = 400) {
     http_response_code($statusCode);
     header('Content-Type: application/json');

@@ -1,24 +1,17 @@
 <?php
-/**
- * API Endpoint: PUT /api/notes/{id}
- * 
- * Actualiza una nota existente del usuario autenticado
- */
 
-// Verificar token y obtener datos del usuario
 $user = verifyAccessToken();
 $user_id = $user['user_id'];
 
-// Obtener ID de la nota desde la URL
+
 if (!isset($id) || !is_numeric($id)) {
     respondWithError('invalid_request', 'ID de nota inválido', 400);
 }
 
-// Obtener datos de la solicitud
 $json_data = file_get_contents('php://input');
 $data = json_decode($json_data, true);
 
-// Verificar datos requeridos
+
 if (!$data || !isset($data['title']) || !isset($data['content'])) {
     respondWithError('invalid_request', 'Faltan campos requeridos (title, content)', 400);
 }
@@ -38,7 +31,7 @@ if (!$stmt->fetch()) {
     respondWithError('not_found', 'Nota no encontrada o no tienes permiso para editarla', 404);
 }
 
-// Actualizar la nota
+
 $stmt = $db->prepare("
     UPDATE notes 
     SET title = ?, content = ? 
@@ -46,7 +39,7 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$title, $content, $id, $user_id]);
 
-// Obtener la nota actualizada
+
 $stmt = $db->prepare("
     SELECT id, title, content, created_at, updated_at 
     FROM notes 
@@ -55,7 +48,7 @@ $stmt = $db->prepare("
 $stmt->execute([$id]);
 $note = $stmt->fetch();
 
-// Responder con la nota actualizada
+
 respondWithJson([
     'success' => true,
     'message' => 'Nota actualizada correctamente',
