@@ -14,8 +14,6 @@ import java.util.List;
 public class SQLiteConexion extends SQLiteOpenHelper {
     private static final String DB_NAME = "NotesDB";
     private static final int DB_VERSION = 1;
-
-    // Tabla de notas
     private static final String TABLE_NOTES = "notes";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_TITLE = "title";
@@ -62,19 +60,14 @@ public class SQLiteConexion extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 Note note = new Note();
-                
                 int idIndex = cursor.getColumnIndex(COLUMN_ID);
                 if (idIndex >= 0) note.setId(cursor.getInt(idIndex));
-                
                 int titleIndex = cursor.getColumnIndex(COLUMN_TITLE);
                 if (titleIndex >= 0) note.setTitle(cursor.getString(titleIndex));
-                
                 int contentIndex = cursor.getColumnIndex(COLUMN_CONTENT);
                 if (contentIndex >= 0) note.setContent(cursor.getString(contentIndex));
-                
                 int timestampIndex = cursor.getColumnIndex(COLUMN_TIMESTAMP);
                 if (timestampIndex >= 0) note.setTimestamp(cursor.getLong(timestampIndex));
-                
                 list.add(note);
             } while (cursor.moveToNext());
         }
@@ -89,20 +82,15 @@ public class SQLiteConexion extends SQLiteOpenHelper {
                 COLUMN_ID + " = ?", 
                 new String[] { String.valueOf(id) }, 
                 null, null, null);
-        
         Note note = null;
         if (cursor.moveToFirst()) {
             note = new Note();
-            
             int idIndex = cursor.getColumnIndex(COLUMN_ID);
             if (idIndex >= 0) note.setId(cursor.getInt(idIndex));
-            
             int titleIndex = cursor.getColumnIndex(COLUMN_TITLE);
             if (titleIndex >= 0) note.setTitle(cursor.getString(titleIndex));
-            
             int contentIndex = cursor.getColumnIndex(COLUMN_CONTENT);
             if (contentIndex >= 0) note.setContent(cursor.getString(contentIndex));
-            
             int timestampIndex = cursor.getColumnIndex(COLUMN_TIMESTAMP);
             if (timestampIndex >= 0) note.setTimestamp(cursor.getLong(timestampIndex));
         }

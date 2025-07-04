@@ -1,0 +1,22 @@
+{
+    "name": "oauthdemoapp/server",
+    "description": "Servidor PHP para la aplicación de notas con OAuth 2.0 + OpenID Connect",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-json": "*",
+        "ext-pdo": "*"
+    },
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Estudiante",
+            "email": "estudiante@ejemplo.com"
+        }
+    ],
+    "minimum-stability": "stable"
+} 

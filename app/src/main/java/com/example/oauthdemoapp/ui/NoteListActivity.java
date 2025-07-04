@@ -15,11 +15,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.oauthdemoapp.R;
+import com.example.oauthdemoapp.api.ApiClient;
 import com.example.oauthdemoapp.auth.AuthManager;
-import com.example.oauthdemoapp.config.SQLiteConexion;
 import com.example.oauthdemoapp.model.Note;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +33,6 @@ public class NoteListActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private NoteAdapter adapter;
     private AuthManager authManager;
-    private SQLiteConexion conexion;
     private ProgressBar progressBar;
     private FloatingActionButton addNoteButton;
     
@@ -44,7 +46,6 @@ public class NoteListActivity extends AppCompatActivity {
         setTitle(R.string.my_notes);
         
         authManager = new AuthManager(this);
-        conexion = new SQLiteConexion(this);
         
         recyclerView = findViewById(R.id.notesRecyclerView);
         progressBar = findViewById(R.id.progressBar);
@@ -77,21 +78,39 @@ public class NoteListActivity extends AppCompatActivity {
     private void loadNotes() {
         showLoading(true);
         
-        // Verificar autenticación antes de cargar las notas
-        if (authManager.isAuthorized()) {
-            // Obtener notas de la base de datos SQLite
-            new Thread(() -> {
-                final List<Note> notes = conexion.getAllNotes();
-                
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    adapter.setNotes(notes);
-                });
-            }).start();
-        } else {
-            showLoading(false);
-            logout();
-        }
+        authManager.performActionWithFreshTokens(new AuthManager.AuthActionCallback() {
+            @Override
+            public void onTokenAvailable(String accessToken) {
+                new Thread(() -> {
+                    try {
+                        final List<Note> notes = ApiClient.getNotes(accessToken);
+                        
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            noteList = notes;
+                            adapter.setNotes(noteList);
+                        });
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            Toast.makeText(NoteListActivity.this, 
+                                    "Error: " + e.getMessage(), 
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                showLoading(false);
+                Toast.makeText(NoteListActivity.this, 
+                        "Error de autenticación: " + errorMessage, 
+                        Toast.LENGTH_SHORT).show();
+                logout();
+            }
+        });
     }
 
     private void logout() {
@@ -106,7 +125,7 @@ public class NoteListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         
         if (resultCode == RESULT_OK) {
-            loadNotes(); // Recargar notas después de cualquier operación exitosa
+            loadNotes();
         }
     }
 

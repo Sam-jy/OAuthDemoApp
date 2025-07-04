@@ -16,6 +16,11 @@ import com.example.oauthdemoapp.R;
 import com.example.oauthdemoapp.auth.AuthManager;
 import com.example.oauthdemoapp.config.SQLiteConexion;
 import com.example.oauthdemoapp.model.Note;
+import com.example.oauthdemoapp.network.ApiClient;
+
+import org.json.JSONException;
+
+import java.io.IOException;
 
 public class NoteDetailActivity extends AppCompatActivity {
     public static final String EXTRA_ID = "com.example.oauthdemoapp.EXTRA_ID";
@@ -78,31 +83,49 @@ public class NoteDetailActivity extends AppCompatActivity {
 
         showLoading(true);
         
-        // Crear o actualizar la nota en SQLite
-        new Thread(() -> {
-            Note note = new Note(title, content);
-            
-            boolean success;
-            if (isEditMode) {
-                note.setId(noteId);
-                success = conexion.updateNote(note) > 0;
-            } else {
-                long id = conexion.insertNote(note);
-                success = id > 0;
+        final Note note = new Note(title, content);
+        if (isEditMode) {
+            note.setId(noteId);
+        }
+        
+        authManager.performActionWithFreshTokens(new AuthManager.AuthActionCallback() {
+            @Override
+            public void onTokenAvailable(String accessToken) {
+                new Thread(() -> {
+                    try {
+                        if (isEditMode) {
+                            ApiClient.updateNote(note, accessToken);
+                        } else {
+                            ApiClient.createNote(note, accessToken);
+                        }
+                        
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            setResult(RESULT_OK);
+                            finish();
+                        });
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            Toast.makeText(NoteDetailActivity.this, 
+                                    "Error: " + e.getMessage(), 
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }).start();
             }
-            
-            runOnUiThread(() -> {
-                showLoading(false);
-                if (success) {
-                    setResult(RESULT_OK);
-                    finish();
-                } else {
-                    Toast.makeText(this, 
-                            "Error al guardar la nota", 
+
+            @Override
+            public void onError(String errorMessage) {
+                runOnUiThread(() -> {
+                    showLoading(false);
+                    Toast.makeText(NoteDetailActivity.this, 
+                            "Error de autenticación: " + errorMessage, 
                             Toast.LENGTH_SHORT).show();
-                }
-            });
-        }).start();
+                });
+            }
+        });
     }
 
     private void deleteNote() {
